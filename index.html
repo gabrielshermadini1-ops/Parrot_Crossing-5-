@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#7ad65c">
+  <title>Parrot Crossing</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game" aria-label="Parrot Crossing game"></canvas>
+
+  <!-- Heads-up display: kept small so it never covers the action -->
+  <header class="hud">
+    <div class="left">
+      <div class="brand">PARROT CROSSING</div>
+      <div class="coins"><span class="coin-icon"></span><span id="coinCount">0</span></div>
+      <div class="chip" id="livesChip" hidden></div>
+      <div class="chip combo" id="comboChip" hidden></div>
+      <div class="chip speed" id="speedChip" hidden></div>
+      <div class="biome-chip"><span id="biomeName">Sunny Meadow</span><div class="bar"><i id="biomeBar"></i></div></div>
+    </div>
+    <div class="scores">
+      <div class="score" id="score">0</div>
+      <div class="best">Best <span id="best">0</span></div>
+      <div class="meter" id="catMeter" aria-label="Cat alert"><span class="meter-icon" id="catIcon">&#128049;</span><div class="bar"><i id="catBar"></i></div></div>
+    </div>
+    <div class="top-right">
+      <button id="soundBtn" class="icon-btn" data-open-sound aria-label="Sound settings" title="Sound settings (M mutes)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>
+          <path class="waves" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>
+          <path class="slash" d="M16 9l5 6M21 9l-5 6"/>
+        </svg>
+      </button>
+      <button id="pauseBtn" class="icon-btn" aria-label="Pause" title="Pause (Space / Esc)">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Start screen -->
+  <section id="startScreen" class="overlay visible">
+    <div class="card">
+      <h1>PARROT<br>CROSSING</h1>
+      <p class="lead">Hop across roads, rivers and five different worlds. Grab gold coins, open mystery cases and hunt for the legendary golden boots.</p>
+      <div class="btn-row">
+        <button id="playBtn" class="btn">Play</button>
+        <button id="shopBtn" class="btn ghost">Shop</button>
+      </div>
+      <div class="btn-row sub"><button class="btn small ghost" data-open-sound>Sound</button></div>
+      <p class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrow keys to hop &middot; <kbd>Space</kbd> pauses &middot; <kbd>M</kbd> mutes</p>
+      <p class="hint warn-hint">Don't dawdle: a grumpy cat hunts parrots who stand still!</p>
+      <p class="hint warn-hint">And mind the traps: bear traps, snares, holes, banana peels and anvils!</p>
+      <p class="hint touch-hint">Tap the arrows, or swipe along the lanes</p>
+    </div>
+  </section>
+
+  <!-- Pause screen -->
+  <section id="pauseScreen" class="overlay">
+    <div class="card small">
+      <h2>Paused</h2>
+      <button id="resumeBtn" class="btn">Resume</button>
+      <div class="btn-row sub"><button class="btn small ghost" data-open-sound>Sound</button></div>
+    </div>
+  </section>
+
+  <!-- Game over screen -->
+  <section id="overScreen" class="overlay">
+    <div class="card">
+      <h2>Game over</h2>
+      <p class="cause" id="deathCause"></p>
+      <div class="final" id="finalScore">0</div>
+      <p class="lead" id="overNote">Best <span id="finalBest">0</span></p>
+      <div class="stats">
+        <div><b id="runCoins">0</b><span>Coins</span></div>
+        <div><b id="runTime">0:00</b><span>Time</span></div>
+        <div><b id="runDodges">0</b><span>Cat dodges</span></div>
+      </div>
+      <div class="btn-row">
+        <button id="restartBtn" class="btn">Restart</button>
+        <button id="shopBtn2" class="btn ghost">Shop</button>
+      </div>
+      <div class="btn-row sub"><button class="btn small ghost" data-open-sound>Sound</button></div>
+      <p class="hint">Press <kbd>Space</kbd> or <kbd>Enter</kbd> to go again</p>
+    </div>
+  </section>
+
+  <!-- Sound menu -->
+  <section id="soundScreen" class="overlay">
+    <div class="card sound-card">
+      <h2>Sound</h2>
+      <div class="vol-row"><label for="volMaster">Master</label><input id="volMaster" type="range" min="0" max="100" step="1"><output id="volMasterVal" for="volMaster">85%</output></div>
+      <div class="vol-row"><label for="volMusic">Music</label><input id="volMusic" type="range" min="0" max="100" step="1"><output id="volMusicVal" for="volMusic">75%</output></div>
+      <div class="vol-row"><label for="volSfx">Effects</label><input id="volSfx" type="range" min="0" max="100" step="1"><output id="volSfxVal" for="volSfx">90%</output></div>
+      <div class="btn-row">
+        <button id="muteToggle" class="btn small ghost" aria-pressed="false">Mute all</button>
+        <button id="soundTest" class="btn small ghost">Test</button>
+        <button id="soundReset" class="btn small ghost">Reset</button>
+      </div>
+      <button id="soundClose" class="btn small">Done</button>
+      <p class="hint">Press <kbd>M</kbd> any time to mute</p>
+    </div>
+  </section>
+
+  <!-- Shop -->
+  <section id="shopScreen" class="overlay">
+    <div class="card shop">
+      <div class="shop-head">
+        <h2>Shop</h2>
+        <div class="wallet"><span class="coin-icon"></span><b id="shopCoins">0</b></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="cases" role="tab">Cases</button>
+        <button class="tab" data-tab="skins" role="tab">Parrots</button>
+        <button class="tab" data-tab="hats" role="tab">Hats</button>
+        <button class="tab" data-tab="boots" role="tab">Boots</button>
+        <button class="tab" data-tab="boosts" role="tab">Boosts</button>
+      </div>
+      <div id="shopGrid" class="shop-grid"></div>
+      <button id="shopClose" class="btn small">Back</button>
+    </div>
+  </section>
+
+  <!-- Mystery case opening -->
+  <section id="caseScreen" class="overlay case-overlay">
+    <div id="caseBox" class="card case-card"></div>
+  </section>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="vignette" class="vignette"></div>
+  <div id="flash" class="flash"></div>
+
+  <!-- Touch controls -->
+  <nav id="dpad" aria-label="Directional controls">
+    <button class="pad up" data-dir="f" aria-label="Forward">&#9650;</button>
+    <button class="pad left" data-dir="l" aria-label="Left">&#9664;</button>
+    <button class="pad right" data-dir="r" aria-label="Right">&#9654;</button>
+    <button class="pad down" data-dir="b" aria-label="Back">&#9660;</button>
+  </nav>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
